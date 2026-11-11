@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0714" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Nanopod Vault</title>
+  <link rel="stylesheet" href="css/vault.css" />
+</head>
+<body>
+  <header class="top">
+    <div style="display:flex;gap:12px;align-items:flex-start;min-width:0">
+      <div class="logo-mark" aria-hidden="true"></div>
+      <div class="brand">
+        <h1>NANOPOD VAULT</h1>
+        <p>Paste a SoundCloud, Spotify, or YouTube link. Official embeds only — nothing uploaded or ripped.</p>
+      </div>
+    </div>
+    <div class="pill">SIDE B</div>
+  </header>
+
+  <section class="card">
+    <h2>Now playing</h2>
+    <div id="player" class="player-wrap empty">
+      <div>
+        <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        Paste a link or pick a saved track
+      </div>
+    </div>
+    <div id="status" class="status"><span class="dot"></span><span class="msg">Idle</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Add link</h2>
+    <div class="field">
+      <label for="url">Official track URL</label>
+      <input id="url" type="url" inputmode="url" autocomplete="off" placeholder="https://soundcloud.com/…" />
+    </div>
+    <div class="field">
+      <label for="title">Label (optional)</label>
+      <input id="title" type="text" maxlength="80" placeholder="Billie Jean" />
+    </div>
+    <div class="row">
+      <button type="button" class="secondary" id="btn-clear">Clear</button>
+      <button type="button" id="btn-add">Add &amp; Play</button>
+    </div>
+    <p class="hint">
+      <strong>Best:</strong> SoundCloud track pages.<br />
+      YouTube watch links work well. Spotify embeds often need login / their app in a webview.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Saved on this device</h2>
+    <ul class="list" id="list"></ul>
+  </section>
+
+  <footer>
+    Nanopod Vault · local playlist · official embeds only<br />
+    Built for the in-game browser when network is allowed
+  </footer>
+
+  <script>
+(function () {
+  const STORAGE_KEY = 'nanopod_vault_v1';
+  const playerEl = document.getElementById('player');
+  const statusEl = document.getElementById('status');
+  const listEl = document.getElementById('list');
+  const urlInput = document.getElementById('url');
+  const titleInput = document.getElementById('title');
+
+  let tracks = load();
+  let activeId = null;
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tracks)); } catch (e) {}
+  }
+
+  function uid() {
+    return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function detectProvider(url) {
+    const u = url.toLowerCase();
+    if (u.includes('soundcloud.com')) return 'soundcloud';
+    if (u.includes('spotify.com') || u.includes('spotify.link')) return 'spotify';
+    if (u.includes('youtube.com') || u.includes('youtu.be') || u.includes('music.youtube.com')) return 'youtube';
+    if (u.includes('bandcamp.com')) return 'bandcamp';
+    return 'other';
+  }
+
+  function providerShort(p) {
+    if (p === 'soundcloud') return 'SC';
+    if (p === 'spotify') return 'SP';
+    if (p === 'youtube') return 'YT';
+    if (p === 'bandcamp') return 'BC';
+    return 'URL';
+  }
+
+  function providerClass(p) {
+    if (p === 'soundcloud') return 'sc';
+    if (p === 'spotify') return 'sp';
+    if (p === 'youtube') return 'yt';
+    return '';
+  }
+
+  function youtubeId(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('/')[0];
+      const v = u.searchParams.get('v');
+      if (v) return v;
+      const parts = u.pathname.split('/').filter(Boolean);
+      const idx = parts.indexOf('embed');
+      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
+      const shorts = parts.indexOf('shorts');
+      if (shorts >= 0 && parts[shorts + 1]) return parts[shorts + 1];
+    } catch (e) {}
+    return null;
+  }
+
+  function spotifyEmbedPath(url) {
+    try {
+      const u = new URL(url);
+      const parts = u.pathname.split('/').filter(Boolean);
+      if (parts.length >= 2) {
+        const type = parts[0];
+        const id = parts[1].split('?')[0];
+        if (['track', 'album', 'playlist', 'episode', 'show'].includes(type) && id) {
+          return type + '/' + id;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function buildEmbed(url, provider) {
+    if (provider === 'soundcloud') {
+      const src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) +
+        '&color=%23ff2e93&auto_play=true&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false';
+      return '<iframe scrolling="no" frameborder="no" allow="autoplay" src="' + src + '"></iframe>';
+    }
+    if (provider === 'youtube') {
+      const id = youtubeId(url);
+      if (!id) return null;
+      const src = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0';
+      return '<iframe src="' + src + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    }
+    if (provider === 'spotify') {
+      const path = spotifyEmbedPath(url);
+      if (!path) return null;
+      const src = 'https://open.spotify.com/embed/' + path + '?utm_source=generator';
+      return '<iframe style="min-height:152px" src="' + src + '" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+    }
+    return '<iframe src="' + url.replace(/"/g, '') + '" allow="autoplay; encrypted-media"></iframe>';
+  }
+
+  function setStatus(msg, kind) {
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+    statusEl.innerHTML = '<span class="dot"></span><span class="msg"></span>';
+    statusEl.querySelector('.msg').textContent = msg;
+  }
+
+  function playTrack(track) {
+    activeId = track.id;
+    const html = buildEmbed(track.url, track.provider);
+    if (!html) {
+      playerEl.className = 'player-wrap empty';
+      playerEl.innerHTML = '<div>Could not build an embed for this link.</div>';
+      setStatus('Unsupported or invalid URL', 'err');
+      renderList();
+      return;
+    }
+    playerEl.className = 'player-wrap';
+    playerEl.innerHTML = html;
+    setStatus('Playing via ' + track.provider + ' — use embed controls if autoplay is blocked', 'ok');
+    renderList();
+  }
+
+  function renderList() {
+    if (!tracks.length) {
+      listEl.innerHTML = '<li class="empty-list">No saved links yet. Add one above.</li>';
+      return;
+    }
+    listEl.innerHTML = '';
+    tracks.forEach(function (t, i) {
+      const li = document.createElement('li');
+      li.className = 'item' + (t.id === activeId ? ' active' : '');
+      li.style.animationDelay = (i * 0.03) + 's';
+      li.innerHTML =
+        '<div class="art ' + providerClass(t.provider) + '"></div>' +
+        '<div class="meta">' +
+          '<div class="title"></div>' +
+          '<div class="sub"></div>' +
+          '<span class="provider-tag ' + providerClass(t.provider) + '"></span>' +
+        '</div>' +
+        '<div class="actions">' +
+          '<button type="button" class="play-btn">Play</button>' +
+          '<button type="button" class="del-btn">Del</button>' +
+        '</div>';
+      li.querySelector('.art').textContent = providerShort(t.provider);
+      li.querySelector('.title').textContent = t.title || t.url;
+      li.querySelector('.sub').textContent = t.url;
+      li.querySelector('.provider-tag').textContent = t.provider;
+      li.querySelector('.play-btn').onclick = function () { playTrack(t); };
+      li.querySelector('.del-btn').onclick = function () {
+        tracks = tracks.filter(function (x) { return x.id !== t.id; });
+        if (activeId === t.id) {
+          activeId = null;
+          playerEl.className = 'player-wrap empty';
+          playerEl.innerHTML = '<div><div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>Paste a link or pick a saved track</div>';
+          setStatus('Idle');
+        }
+        save();
+        renderList();
+      };
+      listEl.appendChild(li);
+    });
+  }
+
+  function normalizeUrl(raw) {
+    var u = (raw || '').trim();
+    if (!u) return '';
+    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+    return u;
+  }
+
+  function defaultTitle(url, provider) {
+    try {
+      const u = new URL(url);
+      if (provider === 'youtube') return 'YouTube ' + (youtubeId(url) || 'video');
+      const parts = u.pathname.split('/').filter(Boolean);
+      return decodeURIComponent(parts[parts.length - 1] || u.hostname).replace(/[-_]/g, ' ');
+    } catch (e) {
+      return 'Track';
+    }
+  }
+
+  function addAndPlay() {
+    const url = normalizeUrl(urlInput.value);
+    if (!url) {
+      setStatus('Paste a URL first', 'err');
+      return;
+    }
+    let parsed;
+    try { parsed = new URL(url); } catch (e) {
+      setStatus('Invalid URL', 'err');
+      return;
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      setStatus('Only http(s) links', 'err');
+      return;
+    }
+    const provider = detectProvider(url);
+    const title = (titleInput.value || '').trim() || defaultTitle(url, provider);
+    const track = { id: uid(), url: url, title: title, provider: provider };
+    tracks = tracks.filter(function (t) { return t.url !== url; });
+    tracks.unshift(track);
+    if (tracks.length > 40) tracks = tracks.slice(0, 40);
+    save();
+    urlInput.value = '';
+    titleInput.value = '';
+    playTrack(track);
+  }
+
+  document.getElementById('btn-add').onclick = addAndPlay;
+  document.getElementById('btn-clear').onclick = function () {
+    urlInput.value = '';
+    titleInput.value = '';
+    setStatus('Cleared');
+  };
+  urlInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') addAndPlay();
+  });
+
+  if (!tracks.length) {
+    tracks = [
+      { id: uid(), title: 'Billie Jean', url: 'https://soundcloud.com/mjimmortal/billie-jean-single-version', provider: 'soundcloud' },
+      { id: uid(), title: 'Take On Me', url: 'https://soundcloud.com/a-ha/take-on-me-1', provider: 'soundcloud' },
+      { id: uid(), title: "It's a Sin", url: 'https://soundcloud.com/petshopboysofficial/its-a-sin', provider: 'soundcloud' },
+      { id: uid(), title: 'Everybody Wants to Rule the World', url: 'https://soundcloud.com/tearsforfearsmusic/everybody-wants-to-rule-the-6', provider: 'soundcloud' },
+      { id: uid(), title: 'Radio Ga Ga', url: 'https://soundcloud.com/queen-69312/radio-ga-ga-remastered-2011', provider: 'soundcloud' }
+    ];
+    save();
+  }
+
+  renderList();
+})();
+  </script>
+</body>
+</html>
