@@ -1,300 +1,1227 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0714" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>Nanopod Vault</title>
-  <link rel="stylesheet" href="css/vault.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#09051b">
+<title>Nanopod Vault</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  color-scheme:dark;
+  --bg:#09051b;
+  --panel:rgba(24,15,53,.92);
+  --line:rgba(155,105,255,.3);
+  --cyan:#35f5ff;
+  --blue:#438cff;
+  --violet:#a45bff;
+  --pink:#ff39b8;
+  --orange:#ff8a42;
+  --gold:#ffe05b;
+  --green:#54ffb5;
+  --text:#fff5ff;
+  --muted:#b3a0d8;
+  --danger:#ff6385;
+  --radius:16px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+}
+
+* {
+  box-sizing:border-box;
+}
+
+html {
+  min-height:100%;
+  background:var(--bg);
+}
+
+body {
+  position:relative;
+  isolation:isolate;
+  max-width:520px;
+  min-height:100vh;
+  margin:0 auto;
+  padding:calc(17px + var(--safe-t)) 14px calc(30px + var(--safe-b));
+  overflow-x:hidden;
+  color:var(--text);
+  background:transparent;
+  font-family:'Share Tech Mono',monospace;
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ANIMATED BACKGROUND */
+
+body::before {
+  content:"";
+  position:fixed;
+  inset:-35%;
+  z-index:-2;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 20% 20%,rgba(255,35,184,.42),transparent 32%),
+    radial-gradient(ellipse at 75% 25%,rgba(53,245,255,.3),transparent 35%),
+    radial-gradient(ellipse at 50% 75%,rgba(140,55,255,.42),transparent 38%),
+    radial-gradient(ellipse at 85% 85%,rgba(255,138,66,.22),transparent 32%);
+  filter:blur(55px);
+  animation:aurora 22s ease-in-out infinite alternate;
+  will-change:transform;
+}
+
+body::after {
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  opacity:.14;
+  background:
+    linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:38px 38px;
+  mask-image:linear-gradient(to bottom,black,transparent 90%);
+}
+
+@keyframes aurora {
+  0% { transform:translate(-3%,2%) rotate(-5deg) scale(1); }
+  50% { transform:translate(4%,-3%) rotate(7deg) scale(1.08); }
+  100% { transform:translate(-2%,4%) rotate(-6deg) scale(1.04); }
+}
+
+/* HEADER */
+
+.top {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:22px;
+}
+
+.brand-wrap {
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  min-width:0;
+}
+
+.logo-mark {
+  position:relative;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+  width:49px;
+  height:49px;
+  border-radius:15px;
+  border:1px solid rgba(255,255,255,.5);
+  background:linear-gradient(135deg,var(--pink),var(--violet) 48%,var(--cyan));
+  box-shadow:0 0 22px rgba(255,57,184,.35);
+}
+
+.logo-mark::before {
+  content:"▶";
+  color:white;
+  font-size:22px;
+  text-shadow:0 0 12px white;
+}
+
+.logo-mark::after {
+  content:"";
+  position:absolute;
+  top:6px;
+  right:6px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--gold);
+  box-shadow:0 0 10px var(--gold);
+}
+
+.brand h1 {
+  margin:0;
+  font-family:'Orbitron',sans-serif;
+  font-size:1.08rem;
+  font-weight:900;
+  letter-spacing:.07em;
+  color:transparent;
+  background:linear-gradient(90deg,#fff,#ff9be2,#6cf8ff,#d2a1ff);
+  background-size:200% auto;
+  background-clip:text;
+  -webkit-background-clip:text;
+  animation:rainbow 8s linear infinite;
+}
+
+@keyframes rainbow {
+  to { background-position:200% center; }
+}
+
+.brand p {
+  max-width:260px;
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:.73rem;
+  line-height:1.55;
+}
+
+.pill {
+  flex-shrink:0;
+  padding:7px 9px;
+  border:1px solid rgba(255,105,220,.4);
+  border-radius:7px;
+  color:white;
+  background:linear-gradient(120deg,rgba(255,57,184,.2),rgba(53,245,255,.12));
+  font-size:.6rem;
+  font-weight:bold;
+  letter-spacing:.12em;
+}
+
+/* PANELS */
+
+.card {
+  position:relative;
+  overflow:hidden;
+  margin-bottom:14px;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:linear-gradient(145deg,rgba(35,20,73,.91),rgba(15,11,40,.94));
+  box-shadow:0 12px 30px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.06);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+
+.card::before {
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:2px;
+  background:linear-gradient(90deg,var(--pink),var(--violet),var(--cyan),var(--gold));
+}
+
+.card h2 {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin:0 0 15px;
+  color:var(--cyan);
+  font-family:'Orbitron',sans-serif;
+  font-size:.68rem;
+  font-weight:700;
+  letter-spacing:.13em;
+}
+
+.card h2::after {
+  content:"";
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,var(--pink),var(--violet),transparent);
+}
+
+/* CASSETTE */
+
+.deck {
+  margin-bottom:12px;
+  padding:13px;
+  border:1px solid rgba(200,125,255,.35);
+  border-radius:13px;
+  background:linear-gradient(145deg,#281744,#100d2c);
+  box-shadow:inset 0 0 20px rgba(0,0,0,.5);
+}
+
+.deck-label {
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:12px;
+  color:#c9b4ed;
+  font-size:.58rem;
+  letter-spacing:.13em;
+}
+
+.deck-led {
+  display:inline-block;
+  width:7px;
+  height:7px;
+  margin-right:5px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 9px var(--green);
+  animation:blink 2s infinite;
+}
+
+@keyframes blink {
+  50% { opacity:.35; }
+}
+
+.cassette {
+  position:relative;
+  height:105px;
+  overflow:hidden;
+  border:2px solid #c38cff;
+  border-radius:10px;
+  background:linear-gradient(135deg,#ff39b8,#6736b9 45%,#214e9c);
+  box-shadow:inset 0 2px 8px rgba(255,255,255,.2);
+}
+
+.cassette::before {
+  content:"";
+  position:absolute;
+  top:8px;
+  right:8%;
+  left:8%;
+  height:14px;
+  border-radius:3px;
+  background:linear-gradient(90deg,#ffca61,#ff69b9,#70eaff);
+}
+
+.cassette-window {
+  position:absolute;
+  top:31px;
+  right:19%;
+  left:19%;
+  display:flex;
+  align-items:center;
+  justify-content:space-evenly;
+  height:48px;
+  border:2px solid #ffb9ed;
+  border-radius:7px;
+  background:#120d2c;
+}
+
+.reel {
+  width:30px;
+  height:30px;
+  border:4px solid #8af5ff;
+  border-radius:50%;
+  background:repeating-conic-gradient(#ff42b5 0deg 15deg,#5736a9 15deg 30deg);
+  box-shadow:0 0 9px var(--cyan);
+}
+
+.reel::after {
+  content:"";
+  display:block;
+  width:8px;
+  height:8px;
+  margin:7px;
+  border-radius:50%;
+  background:var(--gold);
+}
+
+.cassette.playing .reel {
+  animation:spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  to { transform:rotate(360deg); }
+}
+
+.cassette-name {
+  position:absolute;
+  bottom:7px;
+  left:50%;
+  color:white;
+  font-family:'Orbitron',sans-serif;
+  font-size:.47rem;
+  letter-spacing:.12em;
+  white-space:nowrap;
+  text-shadow:0 0 8px var(--cyan);
+  transform:translateX(-50%);
+}
+
+/* EQUALISER */
+
+.visualizer {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  height:43px;
+  margin:13px 0;
+  padding:5px 10px;
+  border:1px solid rgba(255,57,184,.2);
+  border-radius:8px;
+  background:rgba(8,5,25,.8);
+}
+
+.visualizer span {
+  width:5px;
+  height:4px;
+  border-radius:3px;
+  background:linear-gradient(0deg,var(--blue),var(--cyan),var(--pink),var(--gold));
+}
+
+.visualizer.active span {
+  animation:equalize .85s ease-in-out infinite alternate;
+}
+
+.visualizer span:nth-child(3n) { animation-delay:-.3s; }
+.visualizer span:nth-child(4n) { animation-delay:-.5s; }
+.visualizer span:nth-child(5n) { animation-delay:-.15s; }
+
+@keyframes equalize {
+  to { height:31px; }
+}
+
+/* PLAYER */
+
+.player-wrap {
+  min-height:166px;
+  overflow:hidden;
+  border:1px solid rgba(53,245,255,.4);
+  border-radius:11px;
+  background:#000;
+}
+
+.player-wrap iframe {
+  display:block;
+  width:100%;
+  min-height:166px;
+  border:0;
+  background:#000;
+}
+
+.player-wrap.empty {
+  display:grid;
+  place-items:center;
+  min-height:85px;
+  padding:18px;
+  color:var(--muted);
+  background:radial-gradient(ellipse at center,rgba(255,57,184,.14),transparent 65%),#100a25;
+  font-size:.75rem;
+  text-align:center;
+}
+
+/* INPUTS */
+
+label {
+  display:block;
+  margin-bottom:7px;
+  color:#d0b9f4;
+  font-size:.72rem;
+}
+
+.field { margin-bottom:12px; }
+
+input {
+  display:block;
+  width:100%;
+  padding:13px 14px;
+  border:1px solid rgba(164,91,255,.4);
+  border-radius:10px;
+  outline:none;
+  color:white;
+  background:rgba(8,5,25,.85);
+  font-family:'Share Tech Mono',monospace;
+  font-size:16px;
+  transition:border-color .18s,box-shadow .18s;
+}
+
+input::placeholder { color:#8372a8; }
+
+input:focus {
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(53,245,255,.1);
+}
+
+/* BUTTONS */
+
+.row {
+  display:flex;
+  gap:9px;
+  margin-top:14px;
+}
+
+.row > * { flex:1; }
+
+button {
+  padding:13px 12px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;
+  color:white;
+  background:linear-gradient(115deg,var(--pink),var(--violet),var(--blue));
+  font-family:'Orbitron',sans-serif;
+  font-size:.69rem;
+  font-weight:700;
+  letter-spacing:.04em;
+  cursor:pointer;
+  transition:filter .15s,transform .15s;
+}
+
+button:hover { filter:brightness(1.18); }
+button:active { transform:scale(.97); }
+
+button.secondary {
+  color:#e7d9ff;
+  background:linear-gradient(145deg,#38265c,#1d1740);
+  border-color:rgba(164,91,255,.4);
+}
+
+button:focus-visible {
+  outline:2px solid var(--cyan);
+  outline-offset:3px;
+}
+
+/* PLAYLIST */
+
+.list {
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+
+.item {
+  display:grid;
+  grid-template-columns:43px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  border:1px solid rgba(164,91,255,.2);
+  border-radius:12px;
+  background:linear-gradient(110deg,rgba(77,37,111,.55),rgba(27,20,64,.85));
+}
+
+.item.active {
+  border-color:var(--cyan);
+  background:linear-gradient(110deg,rgba(255,57,184,.18),rgba(53,245,255,.12));
+  box-shadow:0 0 15px rgba(255,57,184,.12);
+}
+
+.art {
+  display:grid;
+  place-items:center;
+  width:43px;
+  height:43px;
+  border-radius:9px;
+  color:white;
+  background:linear-gradient(145deg,var(--pink),var(--violet),var(--cyan));
+  font-family:'Orbitron',sans-serif;
+  font-size:.62rem;
+  font-weight:800;
+}
+
+.art.yt { background:linear-gradient(145deg,#ff8585,#ff245c); }
+.art.sc { background:linear-gradient(145deg,#ffbd55,#ff642d); }
+.art.sp { background:linear-gradient(145deg,#7cf7a1,#1eaf68); }
+
+.meta { min-width:0; }
+
+.meta .title {
+  overflow:hidden;
+  color:white;
+  font-family:'Orbitron',sans-serif;
+  font-size:.69rem;
+  font-weight:600;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.meta .sub {
+  overflow:hidden;
+  margin-top:4px;
+  color:#b3a0d8;
+  font-size:.62rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.provider-tag {
+  display:inline-block;
+  margin-top:5px;
+  padding:2px 6px;
+  border-radius:4px;
+  color:var(--cyan);
+  background:rgba(53,245,255,.12);
+  font-family:'Orbitron',sans-serif;
+  font-size:.52rem;
+  font-weight:700;
+}
+
+.provider-tag.yt { color:#ff8585;background:rgba(255,60,70,.13); }
+.provider-tag.sc { color:#ffbd55;background:rgba(255,138,66,.13); }
+.provider-tag.sp { color:#7cf7a1;background:rgba(30,215,96,.13); }
+
+.actions {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.actions button {
+  min-width:55px;
+  padding:7px 9px;
+  border-radius:7px;
+  font-size:.59rem;
+}
+
+.actions .play-btn {
+  background:linear-gradient(120deg,#35dfff,#785aff);
+}
+
+.actions .del-btn {
+  border:1px solid rgba(255,104,125,.3);
+  color:#ff8cae;
+  background:rgba(255,104,125,.07);
+}
+
+/* STATUS AND FOOTER */
+
+.status {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin-top:12px;
+  color:var(--muted);
+  font-size:.73rem;
+}
+
+.status .dot {
+  width:7px;
+  height:7px;
+  flex-shrink:0;
+  border-radius:50%;
+  background:#667b91;
+}
+
+.status.ok { color:var(--green); }
+.status.ok .dot {
+  background:var(--green);
+  box-shadow:0 0 9px var(--green);
+}
+
+.status.err { color:var(--danger); }
+.status.err .dot { background:var(--danger); }
+
+.hint {
+  margin:12px 0 0;
+  color:var(--muted);
+  font-size:.68rem;
+  line-height:1.6;
+}
+
+.hint strong { color:var(--gold); }
+
+.empty-list {
+  padding:24px 10px;
+  color:var(--muted);
+  font-size:.78rem;
+  text-align:center;
+}
+
+footer {
+  margin-top:23px;
+  color:#a08bc8;
+  font-size:.65rem;
+  line-height:1.8;
+  letter-spacing:.03em;
+  text-align:center;
+}
+
+@media(max-width:360px) {
+  .brand h1 { font-size:.88rem; }
+  .pill { font-size:.52rem; }
+  .item { grid-template-columns:36px minmax(0,1fr) auto;gap:7px; }
+  .art { width:36px;height:36px; }
+  .actions button { min-width:47px;padding:7px 6px; }
+}
+
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after {
+    animation:none!important;
+    scroll-behavior:auto!important;
+    transition:none!important;
+  }
+}
+</style>
 </head>
+
 <body>
-  <header class="top">
-    <div style="display:flex;gap:12px;align-items:flex-start;min-width:0">
-      <div class="logo-mark" aria-hidden="true"></div>
-      <div class="brand">
-        <h1>NANOPOD VAULT</h1>
-        <p>Paste a SoundCloud, Spotify, or YouTube link. Official embeds only — nothing uploaded or ripped.</p>
+
+<header class="top">
+  <div class="brand-wrap">
+    <div class="logo-mark" aria-hidden="true"></div>
+    <div class="brand">
+      <h1>NANOPOD VAULT</h1>
+      <p>Your personal retro music station. SoundCloud, Spotify and YouTube.</p>
+    </div>
+  </div>
+  <div class="pill">SIDE B</div>
+</header>
+
+<section class="card">
+  <h2>NOW PLAYING</h2>
+
+  <div class="deck">
+    <div class="deck-label">
+      <span><span class="deck-led"></span>STEREO SYSTEM</span>
+      <span>1986 EDITION</span>
+    </div>
+
+    <div class="cassette" id="cassette">
+      <div class="cassette-window">
+        <div class="reel"></div>
+        <div class="reel"></div>
       </div>
+      <div class="cassette-name">NANOPOD • HIGH QUALITY AUDIO</div>
     </div>
-    <div class="pill">SIDE B</div>
-  </header>
 
-  <section class="card">
-    <h2>Now playing</h2>
-    <div id="player" class="player-wrap empty">
-      <div>
-        <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-        Paste a link or pick a saved track
-      </div>
+    <div class="visualizer" id="visualizer" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
     </div>
-    <div id="status" class="status"><span class="dot"></span><span class="msg">Idle</span></div>
-  </section>
+  </div>
 
-  <section class="card">
-    <h2>Add link</h2>
-    <div class="field">
-      <label for="url">Official track URL</label>
-      <input id="url" type="url" inputmode="url" autocomplete="off" placeholder="https://soundcloud.com/…" />
-    </div>
-    <div class="field">
-      <label for="title">Label (optional)</label>
-      <input id="title" type="text" maxlength="80" placeholder="Billie Jean" />
-    </div>
-    <div class="row">
-      <button type="button" class="secondary" id="btn-clear">Clear</button>
-      <button type="button" id="btn-add">Add &amp; Play</button>
-    </div>
-    <p class="hint">
-      <strong>Best:</strong> SoundCloud track pages.<br />
-      YouTube watch links work well. Spotify embeds often need login / their app in a webview.
-    </p>
-  </section>
+  <div id="player" class="player-wrap empty">
+    <div>♪ Your next favourite song starts here ♪</div>
+  </div>
 
-  <section class="card">
-    <h2>Saved on this device</h2>
-    <ul class="list" id="list"></ul>
-  </section>
+  <div id="status" class="status" role="status" aria-live="polite">
+    <span class="dot"></span>
+    <span class="msg">SYSTEM READY</span>
+  </div>
+</section>
 
-  <footer>
-    Nanopod Vault · local playlist · official embeds only<br />
-    Built for the in-game browser when network is allowed
-  </footer>
+<section class="card">
+  <h2>ADD TO YOUR VAULT</h2>
 
-  <script>
-(function () {
-  const STORAGE_KEY = 'nanopod_vault_v1';
-  const playerEl = document.getElementById('player');
-  const statusEl = document.getElementById('status');
-  const listEl = document.getElementById('list');
-  const urlInput = document.getElementById('url');
-  const titleInput = document.getElementById('title');
+  <div class="field">
+    <label for="url">MUSIC URL</label>
+    <input
+      id="url"
+      type="url"
+      inputmode="url"
+      autocomplete="off"
+      placeholder="https://www.youtube.com/watch?v=..."
+    >
+  </div>
 
-  let tracks = load();
+  <div class="field">
+    <label for="title">TRACK NAME (OPTIONAL)</label>
+    <input
+      id="title"
+      type="text"
+      maxlength="80"
+      placeholder="Give your track a name..."
+    >
+  </div>
+
+  <div class="row">
+    <button type="button" class="secondary" id="btn-clear">CLEAR</button>
+    <button type="button" id="btn-add">ADD & PLAY ▶</button>
+  </div>
+
+  <p class="hint">
+    <strong>SUPPORTED:</strong> YouTube videos, Shorts, live links,
+    SoundCloud tracks and Spotify embeds.
+    <br>
+    YouTube videos must allow third-party embedding.
+  </p>
+</section>
+
+<section class="card">
+  <h2>SAVED ON THIS DEVICE</h2>
+  <ul class="list" id="list"></ul>
+</section>
+
+<footer>
+  NANOPOD VAULT · SIDE B · 1986 EDITION<br>
+  LOCAL PLAYLIST · OFFICIAL EMBEDS ONLY<br>
+  MADE FOR MUSIC LOVERS
+</footer>
+
+<script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'nanopod_vault_v3';
+  const OLD_KEYS = ['nanopod_vault_v2','nanopod_vault_v1'];
+  const MAX_TRACKS = 40;
+
+  const $ = id => document.getElementById(id);
+
+  const playerEl = $('player');
+  const statusEl = $('status');
+  const listEl = $('list');
+  const urlInput = $('url');
+  const titleInput = $('title');
+  const cassetteEl = $('cassette');
+  const visualizerEl = $('visualizer');
+
+  let tracks = loadTracks();
   let activeId = null;
 
-  function load() {
+  /* URL VALIDATION */
+
+  function parseMusicUrl(raw) {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    } catch (e) { return []; }
-  }
+      let value = String(raw || '').trim();
 
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tracks)); } catch (e) {}
-  }
+      if (!value) return null;
 
-  function uid() {
-    return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  }
+      if (!/^https?:\/\//i.test(value)) {
+        value = 'https://' + value;
+      }
 
-  function detectProvider(url) {
-    const u = url.toLowerCase();
-    if (u.includes('soundcloud.com')) return 'soundcloud';
-    if (u.includes('spotify.com') || u.includes('spotify.link')) return 'spotify';
-    if (u.includes('youtube.com') || u.includes('youtu.be') || u.includes('music.youtube.com')) return 'youtube';
-    if (u.includes('bandcamp.com')) return 'bandcamp';
-    return 'other';
-  }
+      const url = new URL(value);
 
-  function providerShort(p) {
-    if (p === 'soundcloud') return 'SC';
-    if (p === 'spotify') return 'SP';
-    if (p === 'youtube') return 'YT';
-    if (p === 'bandcamp') return 'BC';
-    return 'URL';
-  }
+      if (!['http:','https:'].includes(url.protocol)) {
+        return null;
+      }
 
-  function providerClass(p) {
-    if (p === 'soundcloud') return 'sc';
-    if (p === 'spotify') return 'sp';
-    if (p === 'youtube') return 'yt';
-    return '';
-  }
+      const host = url.hostname.toLowerCase();
 
-  function youtubeId(url) {
-    try {
-      const u = new URL(url);
-      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('/')[0];
-      const v = u.searchParams.get('v');
-      if (v) return v;
-      const parts = u.pathname.split('/').filter(Boolean);
-      const idx = parts.indexOf('embed');
-      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1];
-      const shorts = parts.indexOf('shorts');
-      if (shorts >= 0 && parts[shorts + 1]) return parts[shorts + 1];
-    } catch (e) {}
-    return null;
-  }
+      const isHost = domain =>
+        host === domain || host.endsWith('.' + domain);
 
-  function spotifyEmbedPath(url) {
-    try {
-      const u = new URL(url);
-      const parts = u.pathname.split('/').filter(Boolean);
-      if (parts.length >= 2) {
+      // YouTube
+      if (
+        isHost('youtube.com') ||
+        isHost('youtube-nocookie.com') ||
+        isHost('youtu.be')
+      ) {
+        const parts = url.pathname.split('/').filter(Boolean);
+        let id = null;
+
+        if (isHost('youtu.be')) {
+          id = parts[0];
+        } else if (parts[0] === 'watch') {
+          id = url.searchParams.get('v');
+        } else if (
+          ['embed','shorts','live','v'].includes(parts[0])
+        ) {
+          id = parts[1];
+        }
+
+        if (!id || !/^[a-zA-Z0-9_-]{11}$/.test(id)) {
+          return null;
+        }
+
+        return {
+          provider:'youtube',
+          url:'https://www.youtube.com/watch?v=' + id,
+          id
+        };
+      }
+
+      // SoundCloud
+      if (isHost('soundcloud.com')) {
+        const parts = url.pathname.split('/').filter(Boolean);
+
+        if (parts.length < 2) return null;
+
+        return {
+          provider:'soundcloud',
+          url:url.href
+        };
+      }
+
+      // Spotify
+      if (isHost('open.spotify.com')) {
+        const parts = url.pathname.split('/').filter(Boolean);
+
+        if (/^intl-[a-z]{2}$/i.test(parts[0] || '')) {
+          parts.shift();
+        }
+
         const type = parts[0];
-        const id = parts[1].split('?')[0];
-        if (['track', 'album', 'playlist', 'episode', 'show'].includes(type) && id) {
-          return type + '/' + id;
+        const id = parts[1];
+
+        if (
+          !['track','album','playlist','episode','show'].includes(type) ||
+          !id ||
+          !/^[a-zA-Z0-9]+$/.test(id)
+        ) {
+          return null;
+        }
+
+        return {
+          provider:'spotify',
+          url:'https://open.spotify.com/' + type + '/' + id
+        };
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  /* STORAGE */
+
+  function loadTracks() {
+    let raw = null;
+
+    try {
+      raw = localStorage.getItem(STORAGE_KEY);
+
+      if (!raw) {
+        for (const key of OLD_KEYS) {
+          raw = localStorage.getItem(key);
+          if (raw) break;
         }
       }
-    } catch (e) {}
-    return null;
+
+      if (!raw) return [];
+
+      const saved = JSON.parse(raw);
+
+      if (!Array.isArray(saved)) return [];
+
+      return saved
+        .filter(track =>
+          track &&
+          typeof track.id === 'string' &&
+          typeof track.url === 'string' &&
+          !track.id.startsWith('starter-')
+        )
+        .map(track => {
+          const parsed = parseMusicUrl(track.url);
+
+          if (!parsed) return null;
+
+          return {
+            id:track.id,
+            title:typeof track.title === 'string'
+              ? track.title.slice(0,80)
+              : 'Untitled track',
+            url:parsed.url,
+            provider:parsed.provider
+          };
+        })
+        .filter(Boolean)
+        .filter((track,index,array) =>
+          array.findIndex(t => t.url === track.url) === index
+        )
+        .slice(0,MAX_TRACKS);
+
+    } catch (error) {
+      console.warn('Playlist loading failed:',error);
+      return [];
+    }
   }
 
-  function buildEmbed(url, provider) {
-    if (provider === 'soundcloud') {
-      const src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(url) +
-        '&color=%23ff2e93&auto_play=true&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false';
-      return '<iframe scrolling="no" frameborder="no" allow="autoplay" src="' + src + '"></iframe>';
+  function saveTracks() {
+    try {
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(tracks));
+    } catch (error) {
+      setStatus('Could not save playlist on this device','err');
     }
-    if (provider === 'youtube') {
-      const id = youtubeId(url);
-      if (!id) return null;
-      const src = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0';
-      return '<iframe src="' + src + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
-    }
-    if (provider === 'spotify') {
-      const path = spotifyEmbedPath(url);
-      if (!path) return null;
-      const src = 'https://open.spotify.com/embed/' + path + '?utm_source=generator';
-      return '<iframe style="min-height:152px" src="' + src + '" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
-    }
-    return '<iframe src="' + url.replace(/"/g, '') + '" allow="autoplay; encrypted-media"></iframe>';
   }
 
-  function setStatus(msg, kind) {
+  function makeId() {
+    if (window.crypto && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+
+    return 't' + Date.now().toString(36) +
+      Math.random().toString(36).slice(2,8);
+  }
+
+  /* TRACK HELPERS */
+
+  function providerShort(provider) {
+    return {
+      youtube:'YT',
+      soundcloud:'SC',
+      spotify:'SP'
+    }[provider] || 'URL';
+  }
+
+  function providerClass(provider) {
+    return {
+      youtube:'yt',
+      soundcloud:'sc',
+      spotify:'sp'
+    }[provider] || '';
+  }
+
+  function defaultTitle(parsed) {
+    if (parsed.provider === 'youtube') return 'YouTube video';
+
+    try {
+      const parts = new URL(parsed.url).pathname.split('/').filter(Boolean);
+      return decodeURIComponent(parts.at(-1) || 'Untitled track')
+        .replace(/[-_]/g,' ');
+    } catch {
+      return 'Untitled track';
+    }
+  }
+
+  /* EMBEDS */
+
+  function buildEmbed(track) {
+    const parsed = parseMusicUrl(track.url);
+
+    if (!parsed) return null;
+
+    const iframe = document.createElement('iframe');
+
+    iframe.title = track.title || 'Music player';
+    iframe.loading = 'lazy';
+    iframe.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+
+    if (parsed.provider === 'youtube') {
+      const params = new URLSearchParams({
+        autoplay:'1',
+        rel:'0',
+        playsinline:'1'
+      });
+
+      iframe.src =
+        'https://www.youtube.com/embed/' +
+        parsed.id + '?' + params.toString();
+
+      iframe.allowFullscreen = true;
+    }
+
+    else if (parsed.provider === 'soundcloud') {
+      iframe.scrolling = 'no';
+      iframe.src =
+        'https://w.soundcloud.com/player/?url=' +
+        encodeURIComponent(parsed.url) +
+        '&color=%23ff39b8&auto_play=true' +
+        '&hide_related=true&show_comments=false' +
+        '&show_user=true&show_reposts=false' +
+        '&show_teaser=false&visual=false';
+    }
+
+    else if (parsed.provider === 'spotify') {
+      const parts = parsed.url.split('/');
+      iframe.src =
+        'https://open.spotify.com/embed/' +
+        parts.slice(-2).join('/') +
+        '?utm_source=generator';
+
+      iframe.style.minHeight = '152px';
+    }
+
+    else {
+      return null;
+    }
+
+    return iframe;
+  }
+
+  /* STATUS */
+
+  function setStatus(message,kind = '') {
     statusEl.className = 'status' + (kind ? ' ' + kind : '');
-    statusEl.innerHTML = '<span class="dot"></span><span class="msg"></span>';
-    statusEl.querySelector('.msg').textContent = msg;
+    statusEl.querySelector('.msg').textContent = message;
+  }
+
+  function setVisualState(active) {
+    cassetteEl.classList.toggle('playing',active);
+    visualizerEl.classList.toggle('active',active);
+  }
+
+  /* PLAYER */
+
+  function resetPlayer() {
+    activeId = null;
+    playerEl.className = 'player-wrap empty';
+
+    const message = document.createElement('div');
+    message.textContent = '♪ Your next favourite song starts here ♪';
+
+    playerEl.replaceChildren(message);
+    setVisualState(false);
+    setStatus('SYSTEM READY');
   }
 
   function playTrack(track) {
-    activeId = track.id;
-    const html = buildEmbed(track.url, track.provider);
-    if (!html) {
-      playerEl.className = 'player-wrap empty';
-      playerEl.innerHTML = '<div>Could not build an embed for this link.</div>';
-      setStatus('Unsupported or invalid URL', 'err');
-      renderList();
+    const iframe = buildEmbed(track);
+
+    if (!iframe) {
+      setStatus('Invalid or unsupported music URL','err');
       return;
     }
+
+    activeId = track.id;
+
     playerEl.className = 'player-wrap';
-    playerEl.innerHTML = html;
-    setStatus('Playing via ' + track.provider + ' — use embed controls if autoplay is blocked', 'ok');
+    playerEl.replaceChildren(iframe);
+
+    setVisualState(true);
+    setStatus('Embed loaded — press play if autoplay is blocked','ok');
+
     renderList();
   }
 
+  /* PLAYLIST RENDERING */
+
   function renderList() {
+    const fragment = document.createDocumentFragment();
+
     if (!tracks.length) {
-      listEl.innerHTML = '<li class="empty-list">No saved links yet. Add one above.</li>';
-      return;
+      const empty = document.createElement('li');
+      empty.className = 'empty-list';
+      empty.textContent = 'Your vault is empty. Add your first track above!';
+      fragment.appendChild(empty);
     }
-    listEl.innerHTML = '';
-    tracks.forEach(function (t, i) {
+
+    for (const track of tracks) {
       const li = document.createElement('li');
-      li.className = 'item' + (t.id === activeId ? ' active' : '');
-      li.style.animationDelay = (i * 0.03) + 's';
-      li.innerHTML =
-        '<div class="art ' + providerClass(t.provider) + '"></div>' +
-        '<div class="meta">' +
-          '<div class="title"></div>' +
-          '<div class="sub"></div>' +
-          '<span class="provider-tag ' + providerClass(t.provider) + '"></span>' +
-        '</div>' +
-        '<div class="actions">' +
-          '<button type="button" class="play-btn">Play</button>' +
-          '<button type="button" class="del-btn">Del</button>' +
-        '</div>';
-      li.querySelector('.art').textContent = providerShort(t.provider);
-      li.querySelector('.title').textContent = t.title || t.url;
-      li.querySelector('.sub').textContent = t.url;
-      li.querySelector('.provider-tag').textContent = t.provider;
-      li.querySelector('.play-btn').onclick = function () { playTrack(t); };
-      li.querySelector('.del-btn').onclick = function () {
-        tracks = tracks.filter(function (x) { return x.id !== t.id; });
-        if (activeId === t.id) {
-          activeId = null;
-          playerEl.className = 'player-wrap empty';
-          playerEl.innerHTML = '<div><div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>Paste a link or pick a saved track</div>';
-          setStatus('Idle');
-        }
-        save();
-        renderList();
-      };
-      listEl.appendChild(li);
-    });
-  }
 
-  function normalizeUrl(raw) {
-    var u = (raw || '').trim();
-    if (!u) return '';
-    if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
-    return u;
-  }
+      li.className = 'item' +
+        (track.id === activeId ? ' active' : '');
 
-  function defaultTitle(url, provider) {
-    try {
-      const u = new URL(url);
-      if (provider === 'youtube') return 'YouTube ' + (youtubeId(url) || 'video');
-      const parts = u.pathname.split('/').filter(Boolean);
-      return decodeURIComponent(parts[parts.length - 1] || u.hostname).replace(/[-_]/g, ' ');
-    } catch (e) {
-      return 'Track';
+      li.dataset.id = track.id;
+
+      const art = document.createElement('div');
+      art.className = 'art ' + providerClass(track.provider);
+      art.textContent = providerShort(track.provider);
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = track.title;
+
+      const sub = document.createElement('div');
+      sub.className = 'sub';
+      sub.textContent = track.url;
+
+      const tag = document.createElement('span');
+      tag.className = 'provider-tag ' + providerClass(track.provider);
+      tag.textContent = track.provider;
+
+      meta.append(title,sub,tag);
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      const play = document.createElement('button');
+      play.type = 'button';
+      play.className = 'play-btn';
+      play.dataset.action = 'play';
+      play.textContent = 'PLAY';
+      play.setAttribute('aria-label','Play ' + track.title);
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'del-btn';
+      remove.dataset.action = 'delete';
+      remove.textContent = 'DEL';
+      remove.setAttribute('aria-label','Delete ' + track.title);
+
+      actions.append(play,remove);
+      li.append(art,meta,actions);
+      fragment.appendChild(li);
     }
+
+    listEl.replaceChildren(fragment);
+  }
+
+  /* PLAYLIST ACTIONS */
+
+  function deleteTrack(id) {
+    tracks = tracks.filter(track => track.id !== id);
+
+    if (activeId === id) {
+      resetPlayer();
+    }
+
+    saveTracks();
+    renderList();
   }
 
   function addAndPlay() {
-    const url = normalizeUrl(urlInput.value);
-    if (!url) {
-      setStatus('Paste a URL first', 'err');
+    const parsed = parseMusicUrl(urlInput.value);
+
+    if (!parsed) {
+      setStatus('Invalid URL or unsupported provider','err');
       return;
     }
-    let parsed;
-    try { parsed = new URL(url); } catch (e) {
-      setStatus('Invalid URL', 'err');
+
+    const title =
+      titleInput.value.trim() || defaultTitle(parsed);
+
+    const track = {
+      id:makeId(),
+      title:title.slice(0,80),
+      url:parsed.url,
+      provider:parsed.provider
+    };
+
+    // Replace duplicate URLs instead of storing them twice.
+    tracks = tracks.filter(item => item.url !== track.url);
+
+    if (tracks.length >= MAX_TRACKS) {
+      setStatus('Your vault is full. Delete a track first.','err');
       return;
     }
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      setStatus('Only http(s) links', 'err');
-      return;
-    }
-    const provider = detectProvider(url);
-    const title = (titleInput.value || '').trim() || defaultTitle(url, provider);
-    const track = { id: uid(), url: url, title: title, provider: provider };
-    tracks = tracks.filter(function (t) { return t.url !== url; });
+
     tracks.unshift(track);
-    if (tracks.length > 40) tracks = tracks.slice(0, 40);
-    save();
+
     urlInput.value = '';
     titleInput.value = '';
+
+    saveTracks();
+    renderList();
     playTrack(track);
   }
 
-  document.getElementById('btn-add').onclick = addAndPlay;
-  document.getElementById('btn-clear').onclick = function () {
-    urlInput.value = '';
-    titleInput.value = '';
-    setStatus('Cleared');
-  };
-  urlInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') addAndPlay();
+  /* SINGLE EVENT LISTENER FOR THE PLAYLIST */
+
+  listEl.addEventListener('click',event => {
+    const button = event.target.closest('button[data-action]');
+
+    if (!button) return;
+
+    const item = button.closest('.item');
+    if (!item) return;
+
+    const track = tracks.find(t => t.id === item.dataset.id);
+    if (!track) return;
+
+    if (button.dataset.action === 'play') {
+      playTrack(track);
+    } else if (button.dataset.action === 'delete') {
+      deleteTrack(track.id);
+    }
   });
 
-  if (!tracks.length) {
-    tracks = [
-      { id: uid(), title: 'Billie Jean', url: 'https://soundcloud.com/mjimmortal/billie-jean-single-version', provider: 'soundcloud' },
-      { id: uid(), title: 'Take On Me', url: 'https://soundcloud.com/a-ha/take-on-me-1', provider: 'soundcloud' },
-      { id: uid(), title: "It's a Sin", url: 'https://soundcloud.com/petshopboysofficial/its-a-sin', provider: 'soundcloud' },
-      { id: uid(), title: 'Everybody Wants to Rule the World', url: 'https://soundcloud.com/tearsforfearsmusic/everybody-wants-to-rule-the-6', provider: 'soundcloud' },
-      { id: uid(), title: 'Radio Ga Ga', url: 'https://soundcloud.com/queen-69312/radio-ga-ga-remastered-2011', provider: 'soundcloud' }
-    ];
-    save();
-  }
+  /* INPUT BUTTONS */
 
+  $('btn-add').addEventListener('click',addAndPlay);
+
+  $('btn-clear').addEventListener('click',() => {
+    urlInput.value = '';
+    titleInput.value = '';
+    setStatus('INPUT CLEARED');
+  });
+
+  urlInput.addEventListener('keydown',event => {
+    if (event.key === 'Enter') addAndPlay();
+  });
+
+  titleInput.addEventListener('keydown',event => {
+    if (event.key === 'Enter') addAndPlay();
+  });
+
+  /* INITIALIZE */
+
+  saveTracks();
   renderList();
+  resetPlayer();
+
 })();
-  </script>
+</script>
+
 </body>
 </html>
